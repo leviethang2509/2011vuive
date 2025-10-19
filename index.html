@@ -334,31 +334,45 @@ const playBtn = document.getElementById("play-btn");
 const audio = document.getElementById("bg-music");
 const effectContainer = document.getElementById("effect-container");
 
-async function enableAudio() {
-  try {
-    playBtn.innerText = "⏳ Đang bật nhạc...";
-    playBtn.disabled = true;
+// 1️⃣ Đảm bảo nhạc KHÔNG tự phát trước
+audio.muted = true;
+audio.pause();
+effectContainer.style.opacity = 0;
 
-    audio.muted = false;
-    await audio.play(); // Thử phát
+// 2️⃣ Chỉ khi user chạm, mới bật nhạc + hiệu ứng
+function enableAudio() {
+  console.log("👆 User tapped, trying to play audio...");
+  playBtn.innerText = "⏳ Đang bật nhạc...";
+  playBtn.disabled = true;
 
-    // ✅ Thành công -> ẩn nút, bật hiệu ứng
-    playBtn.style.display = "none";
-    effectContainer.style.opacity = 1;
+  audio.muted = false;
+  const playPromise = audio.play();
 
-    console.log("✅ Nhạc đã bật!");
-  } catch (err) {
-    // ❌ Nếu bị chặn (user chưa tương tác thật)
-    console.warn("⚠️ Trình duyệt chặn phát nhạc:", err);
-    playBtn.innerText = "🎵 Nhấn lại để bật nhạc";
-    playBtn.disabled = false;
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        console.log("✅ Phát nhạc thành công!");
+        playBtn.style.display = "none";
+        effectContainer.style.opacity = 1;
+      })
+      .catch((err) => {
+        console.warn("⚠️ Trình duyệt chặn phát nhạc:", err);
+        playBtn.innerText = "🎵 Nhấn lại để bật nhạc";
+        playBtn.disabled = false;
+      });
   }
 }
 
+// 3️⃣ Đảm bảo không ẩn nút khi chưa phát được
+playBtn.style.display = "block";
+playBtn.disabled = false;
+effectContainer.style.opacity = 0;
+
+// 4️⃣ Gắn cả click + touchstart cho mobile
 playBtn.addEventListener("click", enableAudio);
 playBtn.addEventListener("touchstart", enableAudio);
-
 </script>
+
 
 
   <script>
@@ -414,30 +428,127 @@ playBtn.addEventListener("touchstart", enableAudio);
   /* 💖 Nút bật nhạc giữa màn hình */
 /* 💖 Nút bật nhạc hình trái tim giữa màn hình */
 /* 💖 Nút bật nhạc giữa màn hình */
+/* 🌸 Nút bật nhạc giữa màn hình */
+/* 💖 Nút bật nhạc hình trái tim giữa màn hình */
 #play-btn {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #ff8fa3, #ffb6c1);
+  background: none;
   border: none;
-  color: white;
-  font-size: 18px;
-  padding: 15px 35px;
-  border-radius: 50px;
-  z-index: 999999;
+  outline: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  z-index: 9999999;
+  animation: fadeIn 1.2s ease-in-out;
+  pointer-events: auto; /* Đảm bảo nhấn được trên mobile */
+  opacity: 1;
+  visibility: visible;
 }
 
-#play-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* ✨ Hiệu ứng hiện dần */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
+/* ❤️ Trái tim chính */
+#play-btn .heart {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  background: #ff6fa3;
+  transform: rotate(-45deg);
+  animation: beat 1.2s infinite ease-in-out;
+  box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
+  border: none;
+  display: block;
+}
+
+/* Hai nửa tròn của trái tim */
+#play-btn .heart::before,
+#play-btn .heart::after {
+  content: "";
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: #ff6fa3;
+  border-radius: 50%;
+}
+
+#play-btn .heart::before {
+  top: -35px;
+  left: 0;
+}
+
+#play-btn .heart::after {
+  left: 35px;
+  top: 0;
+}
+
+/* 💓 Hiệu ứng đập tim */
+@keyframes beat {
+  0%, 100% { transform: rotate(-45deg) scale(1); }
+  50% { transform: rotate(-45deg) scale(1.15); }
+}
+
+/* 💕 Dòng chữ dưới trái tim */
+#play-btn .text {
+  color: #fffafc;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #ff9dbb, 0 0 20px #ff6fa3;
+  font-family: "Dancing Script", cursive;
+  animation: textGlow 2s infinite alternate;
+  text-align: center;
+  margin-top: 8px;
+}
+
+@keyframes textGlow {
+  from { opacity: 0.8; text-shadow: 0 0 5px #ffb6c1, 0 0 15px #ff6fa3; }
+  to { opacity: 1; text-shadow: 0 0 15px #ff9dbb, 0 0 25px #ff69b4; }
+}
+
+/* 🌺 Đảm bảo hiệu ứng nền không che nút */
 #effect-container {
   pointer-events: none;
 }
+
+/* 🖐️ Khi hover hoặc chạm trái tim */
+#play-btn:hover .heart,
+#play-btn:active .heart {
+  transform: rotate(-45deg) scale(1.25);
+  transition: transform 0.2s ease;
+}
+
+/* 📱 Mobile tối ưu */
+@media (max-width: 768px) {
+  #play-btn .heart {
+    width: 55px;
+    height: 55px;
+  }
+
+  #play-btn .heart::before,
+  #play-btn .heart::after {
+    width: 55px;
+    height: 55px;
+  }
+
+  #play-btn .heart::before { top: -27px; }
+  #play-btn .heart::after { left: 27px; }
+
+  #play-btn .text {
+    font-size: 17px;
+  }
+}
+#effect-container { z-index: 1; }
+#play-btn { z-index: 9999; }
 
   </style>
 </body>
