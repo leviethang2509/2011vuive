@@ -329,38 +329,42 @@
   <span class="text">Click vào đây 💕</span>
 </button>
 
-  <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const audio = document.getElementById("bg-music");
-    const playBtn = document.getElementById("play-btn");
-    const effectContainer = document.getElementById("effect-container");
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const audio = document.getElementById("bg-music");
+  const playBtn = document.getElementById("play-btn");
+  const effectContainer = document.getElementById("effect-container");
 
-    audio.volume = 0.7;
-    audio.muted = true;
+  audio.volume = 0.7;
+  audio.muted = true;
 
-    // thử autoplay im lặng
-    audio.play().then(() => {
-      console.log("Autoplay OK (muted)");
-      setTimeout(() => audio.muted = false, 1000);
-      // nếu autoplay được -> hiển thị hiệu ứng luôn
-      effectContainer.style.opacity = 1;
-      playBtn.style.display = "none";
-    }).catch(() => {
-      console.log("Autoplay bị chặn, chờ click...");
-      playBtn.style.display = "flex";
+  // Thử phát im lặng để kiểm tra autoplay
+  audio.play().then(() => {
+    console.log("✅ Autoplay thành công");
+    setTimeout(() => audio.muted = false, 800);
+    effectContainer.style.opacity = 1;
+    playBtn.style.display = "none";
+  }).catch(() => {
+    console.log("🚫 Autoplay bị chặn — chờ người dùng");
+    playBtn.style.display = "flex";
+    playBtn.style.opacity = "1";
 
-      const enableAudio = () => {
-        audio.muted = false;
-        audio.play().catch(err => console.log("Không thể phát:", err));
-        playBtn.style.opacity = "0";
-        setTimeout(() => playBtn.style.display = "none", 500);
-        setTimeout(() => effectContainer.style.opacity = "1", 700);
-      };
+    const enableAudio = () => {
+      audio.muted = false;
+      audio.play().catch(err => console.warn("Không thể phát nhạc:", err));
+      playBtn.style.transition = "opacity 0.8s ease";
+      playBtn.style.opacity = "0";
+      setTimeout(() => playBtn.style.display = "none", 800);
+      setTimeout(() => effectContainer.style.opacity = "1", 1000);
+    };
 
-      playBtn.addEventListener("click", enableAudio);
-    });
+    // Sự kiện click cho mobile (touch-friendly)
+    playBtn.addEventListener("click", enableAudio);
+    playBtn.addEventListener("touchstart", enableAudio);
   });
-  </script>
+});
+</script>
+
 
   <script>
   // 🌺 Đổi lời chúc liên tục
@@ -414,6 +418,7 @@
 }
   /* 💖 Nút bật nhạc giữa màn hình */
 /* 💖 Nút bật nhạc hình trái tim giữa màn hình */
+/* 💖 Nút bật nhạc giữa màn hình */
 #play-btn {
   position: fixed;
   top: 50%;
@@ -422,13 +427,15 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 2147483647;
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 10px;
+  z-index: 999999 !important;
+  opacity: 1;
   animation: fadeIn 1.2s ease forwards;
+  pointer-events: auto;
 }
 
 /* ❤️ Hình trái tim */
@@ -440,10 +447,9 @@
   transform: rotate(-45deg);
   animation: beat 1.2s infinite ease-in-out;
   box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
-  transition: transform 0.3s ease;
+  border: none;
 }
 
-/* Hai nửa trên của trái tim */
 #play-btn .heart::before,
 #play-btn .heart::after {
   content: "";
@@ -454,17 +460,9 @@
   border-radius: 50%;
 }
 
-#play-btn .heart::before {
-  top: -30px;
-  left: 0;
-}
+#play-btn .heart::before { top: -30px; left: 0; }
+#play-btn .heart::after { left: 30px; top: 0; }
 
-#play-btn .heart::after {
-  left: 30px;
-  top: 0;
-}
-
-/* 💞 Hiệu ứng nhịp đập */
 @keyframes beat {
   0%, 100% { transform: rotate(-45deg) scale(1); }
   50% { transform: rotate(-45deg) scale(1.15); }
@@ -480,7 +478,6 @@
   animation: textGlow 2s infinite alternate;
 }
 
-/* Lấp lánh nhẹ */
 @keyframes textGlow {
   from { opacity: 0.8; text-shadow: 0 0 5px #ffb6c1, 0 0 15px #ff6fa3; }
   to { opacity: 1; text-shadow: 0 0 15px #ff9dbb, 0 0 25px #ff69b4; }
@@ -492,18 +489,38 @@
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Khi hover trái tim rung nhẹ hơn */
+/* Khi hover trái tim */
+#play-btn:active .heart,
 #play-btn:hover .heart {
   transform: rotate(-45deg) scale(1.25);
-  transition: 0.3s;
 }
 
+/* Đảm bảo hiệu ứng nền không che nút */
+#effect-container {
+  pointer-events: none;
+}
+#play-btn {
+  pointer-events: auto;
+}
 
-  @keyframes pulse {
-    0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px #ffb6c1; }
-    50% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 25px #ff6fa3; }
-    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px #ffb6c1; }
+/* Mobile tối ưu */
+@media (max-width: 768px) {
+  #play-btn .heart {
+    width: 50px;
+    height: 50px;
   }
+  #play-btn .heart::before,
+  #play-btn .heart::after {
+    width: 50px;
+    height: 50px;
+  }
+  #play-btn .heart::before { top: -25px; }
+  #play-btn .heart::after { left: 25px; }
+  #play-btn .text {
+    font-size: 16px;
+  }
+}
+
   </style>
 </body>
 </html>
